@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenFlow - A/B Test Administrator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+        }
+        .card {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        .admin-panel {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .btn {
+            width: 100%;
+            color: white;
+            font-weight: bold;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-control { background-color: #3b82f6; }
+        .btn-control:hover { background-color: #2563eb; }
+        .btn-treatment { background-color: #16a34a; }
+        .btn-treatment:hover { background-color: #15803d; }
+        .btn-admin { background-color: #f59e0b; }
+        .btn-admin:hover { background-color: #d97706; }
+        .btn-record { background-color: #8b5cf6; }
+        .btn-record:hover { background-color: #7c3aed; }
+        .btn-download { background-color: #10b981; }
+        .btn-download:hover { background-color: #059669; }
+
+        /* Hide elements by default */
+        #zenflow-card, #recorder-panel { display: none; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-4xl mx-auto">
+        
+        <!-- ADMIN CONTROL PANEL -->
+        <div id="admin-panel" class="admin-panel rounded-xl shadow-2xl p-8 text-center text-white mb-8">
+            <h2 class="text-3xl font-bold mb-4">A/B Test Administrator Panel</h2>
+            <p class="text-gray-300 mb-6">Conduct the test for each of your 40 participants using this panel.</p>
+            <button id="start-test-btn" class="btn btn-admin max-w-sm mx-auto">Start New Participant Test</button>
+        </div>
+
+        <!-- ZENFLOW CARD (for the participant) -->
+        <div id="zenflow-card" class="card w-full max-w-md mx-auto rounded-xl shadow-2xl p-8 text-center">
+            <div class="mb-6">
+                <svg class="w-20 h-20 mx-auto text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0m-12.728 0l12.728 12.728"></path></svg>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Welcome to ZenFlow</h1>
+            <p class="text-lg text-gray-600 mb-6">Your personal guide to mindfulness and tranquility.</p>
+            <div class="text-left my-8 space-y-4">
+                <p class="text-gray-700">In a world that never stops, find your moment of peace. ZenFlow offers guided meditations, calming sounds, and breathing exercises to help you reduce stress and improve focus.</p>
+                <p class="text-gray-700 font-semibold">Be the first to know when we launch.</p>
+            </div>
+            <button id="cta-button" class="btn">Loading...</button>
+            <div id="confirmation-message" class="mt-4 text-green-700 font-semibold opacity-0 transition-opacity duration-500">
+                Thank you for your interest!
+            </div>
+        </div>
+        
+        <!-- RECORDER PANEL (for the admin) -->
+        <div id="recorder-panel" class="admin-panel rounded-xl shadow-2xl p-6 text-center text-white mt-4 max-w-md mx-auto">
+            <h3 class="text-xl font-bold mb-2">Record Participant's Action</h3>
+            <p class="mb-4">Participant saw <strong id="group-display" class="text-yellow-300"></strong> version.</p>
+            <div class="flex space-x-4">
+                <button id="record-click-btn" class="btn btn-record">Record CLICK</button>
+                <button id="record-no-click-btn" class="btn btn-record bg-red-500 hover:bg-red-600">Record NO CLICK</button>
+            </div>
+        </div>
+
+        <!-- RESULTS TABLE -->
+        <div class="mt-8 bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold text-center mb-4">Live Test Results</h2>
+            <div class="grid grid-cols-2 gap-4 text-center mb-4">
+                <div>
+                    <h3 class="font-bold">Group A (Control)</h3>
+                    <p>Visitors: <span id="visitors-a">0</span></p>
+                    <p>Clicks: <span id="clicks-a">0</span></p>
+                    <p class="text-lg font-bold">CTR: <span id="ctr-a">0%</span></p>
+                </div>
+                <div>
+                    <h3 class="font-bold">Group B (Treatment)</h3>
+                    <p>Visitors: <span id="visitors-b">0</span></p>
+                    <p>Clicks: <span id="clicks-b">0</span></p>
+                    <p class="text-lg font-bold">CTR: <span id="ctr-b">0%</span></p>
+                </div>
+            </div>
+            <button id="download-csv-btn" class="btn btn-download w-full max-w-xs mx-auto">Download Results as CSV</button>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const startTestBtn = document.getElementById('start-test-btn');
+            const zenflowCard = document.getElementById('zenflow-card');
+            const recorderPanel = document.getElementById('recorder-panel');
+            const ctaButton = document.getElementById('cta-button');
+            const confirmationMessage = document.getElementById('confirmation-message');
+            const groupDisplay = document.getElementById('group-display');
+            const recordClickBtn = document.getElementById('record-click-btn');
+            const recordNoClickBtn = document.getElementById('record-no-click-btn');
+            const downloadCsvBtn = document.getElementById('download-csv-btn');
+
+            // --- State Management ---
+            let currentGroup = '';
+            const testData = [];
+            const summary = {
+                A: { visitors: 0, clicks: 0 },
+                B: { visitors: 0, clicks: 0 }
+            };
+
+            // --- Event Listeners ---
+            startTestBtn.addEventListener('click', setupNewTest);
+            recordClickBtn.addEventListener('click', () => recordResult(true));
+            recordNoClickBtn.addEventListener('click', () => recordResult(false));
+            downloadCsvBtn.addEventListener('click', downloadCSV);
+            
+            // --- Core Functions ---
+            function setupNewTest() {
+                // Reset UI
+                startTestBtn.style.display = 'none';
+                zenflowCard.style.display = 'block';
+                recorderPanel.style.display = 'block';
+                ctaButton.style.display = 'block';
+                confirmationMessage.style.opacity = '0';
+                ctaButton.className = 'btn'; // Reset classes
+
+                // A/B Test Logic
+                if (Math.random() < 0.5) {
+                    currentGroup = 'A';
+                    ctaButton.innerText = 'Sign Up for Free';
+                    ctaButton.classList.add('btn-control');
+                } else {
+                    currentGroup = 'B';
+                    ctaButton.innerText = 'Start Your Journey';
+                    ctaButton.classList.add('btn-treatment');
+                }
+                groupDisplay.textContent = `Group ${currentGroup} ('${ctaButton.innerText}')`;
+                
+                // Show confirmation on participant click
+                ctaButton.onclick = () => {
+                    ctaButton.style.display = 'none';
+                    confirmationMessage.style.opacity = '1';
+                };
+            }
+
+            function recordResult(didClick) {
+                // Log the data
+                const result = {
+                    participant: testData.length + 1,
+                    group: currentGroup,
+                    clicked: didClick
+                };
+                testData.push(result);
+
+                // Update summary
+                summary[currentGroup].visitors++;
+                if (didClick) {
+                    summary[currentGroup].clicks++;
+                }
+                
+                updateSummaryDisplay();
+                resetUIForNextTest();
+            }
+
+            function updateSummaryDisplay() {
+                // Group A
+                document.getElementById('visitors-a').textContent = summary.A.visitors;
+                document.getElementById('clicks-a').textContent = summary.A.clicks;
+                const ctrA = summary.A.visitors > 0 ? ((summary.A.clicks / summary.A.visitors) * 100).toFixed(1) : 0;
+                document.getElementById('ctr-a').textContent = `${ctrA}%`;
+                
+                // Group B
+                document.getElementById('visitors-b').textContent = summary.B.visitors;
+                document.getElementById('clicks-b').textContent = summary.B.clicks;
+                const ctrB = summary.B.visitors > 0 ? ((summary.B.clicks / summary.B.visitors) * 100).toFixed(1) : 0;
+                document.getElementById('ctr-b').textContent = `${ctrB}%`;
+            }
+
+            function resetUIForNextTest() {
+                zenflowCard.style.display = 'none';
+                recorderPanel.style.display = 'none';
+                startTestBtn.style.display = 'block';
+            }
+
+            function downloadCSV() {
+                if (testData.length === 0) {
+                    alert('No data to download!');
+                    return;
+                }
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Participant,Group,Clicked\r\n";
+                testData.forEach(row => {
+                    csvContent += `${row.participant},${row.group},${row.clicked}\r\n`;
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "ab_test_results.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+    </script>
+
+</body>
+</html>
+
