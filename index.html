@@ -7,57 +7,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .gradient-bg {
-            background: linear-gradient(135deg, #a8e063, #56ab2f);
-        }
-        .card {
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            background-color: rgba(255, 255, 255, 0.7);
-        }
-        .admin-panel {
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        .btn {
-            width: 100%;
-            color: white;
-            font-weight: bold;
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-            padding-left: 1.5rem;
-            padding-right: 1.5rem;
-            border-radius: 0.5rem;
-            font-size: 1.125rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            cursor: pointer;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-        .btn-control { background-color: #3b82f6; }
-        .btn-control:hover { background-color: #2563eb; }
-        .btn-treatment { background-color: #16a34a; }
-        .btn-treatment:hover { background-color: #15803d; }
-        .btn-admin { background-color: #f59e0b; }
-        .btn-admin:hover { background-color: #d97706; }
-        .btn-record { background-color: #8b5cf6; }
-        .btn-record:hover { background-color: #7c3aed; }
-        .btn-download { background-color: #10b981; }
-        .btn-download:hover { background-color: #059669; }
-
-        /* Hide elements by default */
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #a8e063, #56ab2f); }
+        .card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.7); }
+        .admin-panel { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .btn { width: 100%; color: white; font-weight: bold; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 1.125rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: background-color 0.3s ease, transform 0.2s ease; cursor: pointer; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-control { background-color: #3b82f6; } .btn-control:hover { background-color: #2563eb; }
+        .btn-treatment { background-color: #16a34a; } .btn-treatment:hover { background-color: #15803d; }
+        .btn-admin { background-color: #f59e0b; } .btn-admin:hover { background-color: #d97706; }
+        .btn-record { background-color: #8b5cf6; } .btn-record:hover { background-color: #7c3aed; }
+        .btn-download { background-color: #10b981; } .btn-download:hover { background-color: #059669; }
         #zenflow-card, #recorder-panel { display: none; }
     </style>
 </head>
 <body class="gradient-bg min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-4xl mx-auto">
+    <!-- This container will be replaced by an error message if Firebase isn't configured -->
+    <div id="main-container" class="w-full max-w-4xl mx-auto">
         
         <!-- ADMIN CONTROL PANEL -->
         <div id="admin-panel" class="admin-panel rounded-xl shadow-2xl p-8 text-center text-white mb-8">
@@ -68,7 +35,7 @@
 
         <!-- ZENFLOW CARD (for the participant) -->
         <div id="zenflow-card" class="card w-full max-w-md mx-auto rounded-xl shadow-2xl p-8 text-center">
-            <div class="mb-6">
+             <div class="mb-6">
                 <svg class="w-20 h-20 mx-auto text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0m-12.728 0l12.728 12.728"></path></svg>
             </div>
             <h1 class="text-4xl font-bold text-gray-800 mb-2">Welcome to ZenFlow</h1>
@@ -95,7 +62,7 @@
 
         <!-- RESULTS TABLE -->
         <div class="mt-8 bg-white p-6 rounded-xl shadow-lg">
-            <h2 class="text-2xl font-bold text-center mb-4">Live Test Results</h2>
+            <h2 class="text-2xl font-bold text-center mb-4">Live Test Results (from Firebase)</h2>
             <div class="grid grid-cols-2 gap-4 text-center mb-4">
                 <div>
                     <h3 class="font-bold">Group A (Control)</h3>
@@ -110,128 +77,152 @@
                     <p class="text-lg font-bold">CTR: <span id="ctr-b">0%</span></p>
                 </div>
             </div>
-            <button id="download-csv-btn" class="btn btn-download w-full max-w-xs mx-auto">Download Results as CSV</button>
+             <p class="text-center text-xs text-gray-400 mt-4">Data is updated in real-time.</p>
         </div>
-
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
-            const startTestBtn = document.getElementById('start-test-btn');
-            const zenflowCard = document.getElementById('zenflow-card');
-            const recorderPanel = document.getElementById('recorder-panel');
-            const ctaButton = document.getElementById('cta-button');
-            const confirmationMessage = document.getElementById('confirmation-message');
-            const groupDisplay = document.getElementById('group-display');
-            const recordClickBtn = document.getElementById('record-click-btn');
-            const recordNoClickBtn = document.getElementById('record-no-click-btn');
-            const downloadCsvBtn = document.getElementById('download-csv-btn');
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
-            // --- State Management ---
-            let currentGroup = '';
-            const testData = [];
+        // --- PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        // ----------------------------------------------------
+
+        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+            const mainContainer = document.getElementById('main-container');
+            mainContainer.innerHTML = `
+                <div class="bg-red-100 border-4 border-dashed border-red-400 text-red-700 px-4 py-8 rounded-xl relative text-center" role="alert">
+                    <strong class="font-bold text-3xl block">ACTION REQUIRED!</strong>
+                    <span class="block text-xl mt-4">You have not configured your Firebase connection.</span>
+                    <p class="mt-2">Please open the <strong>index.html</strong> file, find the <strong>firebaseConfig</strong> object in the script tag at the bottom, and replace the placeholder values with the real keys from your Firebase project settings.</p>
+                </div>
+            `;
+            throw new Error("Firebase config is not set. Please update index.html.");
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const resultsCollection = collection(db, "results");
+
+        const startTestBtn = document.getElementById('start-test-btn');
+        const zenflowCard = document.getElementById('zenflow-card');
+        const recorderPanel = document.getElementById('recorder-panel');
+        const ctaButton = document.getElementById('cta-button');
+        const confirmationMessage = document.getElementById('confirmation-message');
+        const groupDisplay = document.getElementById('group-display');
+        const recordClickBtn = document.getElementById('record-click-btn');
+        const recordNoClickBtn = document.getElementById('record-no-click-btn');
+
+        let currentGroup = '';
+
+        startTestBtn.addEventListener('click', setupNewTest);
+        recordClickBtn.addEventListener('click', () => recordResult(true));
+        recordNoClickBtn.addEventListener('click', () => recordResult(false));
+        
+        onSnapshot(resultsCollection, (snapshot) => {
             const summary = {
                 A: { visitors: 0, clicks: 0 },
                 B: { visitors: 0, clicks: 0 }
             };
-
-            // --- Event Listeners ---
-            startTestBtn.addEventListener('click', setupNewTest);
-            recordClickBtn.addEventListener('click', () => recordResult(true));
-            recordNoClickBtn.addEventListener('click', () => recordResult(false));
-            downloadCsvBtn.addEventListener('click', downloadCSV);
-            
-            // --- Core Functions ---
-            function setupNewTest() {
-                // Reset UI
-                startTestBtn.style.display = 'none';
-                zenflowCard.style.display = 'block';
-                recorderPanel.style.display = 'block';
-                ctaButton.style.display = 'block';
-                confirmationMessage.style.opacity = '0';
-                ctaButton.className = 'btn'; // Reset classes
-
-                // A/B Test Logic
-                if (Math.random() < 0.5) {
-                    currentGroup = 'A';
-                    ctaButton.innerText = 'Sign Up for Free';
-                    ctaButton.classList.add('btn-control');
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const group = data ? data.group : null;
+                
+                // --- FIX: This more robust check handles bad/malformed data in Firestore ---
+                // It confirms the group is either 'A' or 'B' before trying to access the summary.
+                if (group === 'A' || group === 'B') {
+                    summary[group].visitors++;
+                    if (data.clicked) {
+                        summary[group].clicks++;
+                    }
                 } else {
-                    currentGroup = 'B';
-                    ctaButton.innerText = 'Start Your Journey';
-                    ctaButton.classList.add('btn-treatment');
+                    console.warn("Skipping a document with an invalid or missing group field:", doc.id, data);
                 }
-                groupDisplay.textContent = `Group ${currentGroup} ('${ctaButton.innerText}')`;
-                
-                // Show confirmation on participant click
-                ctaButton.onclick = () => {
-                    ctaButton.style.display = 'none';
-                    confirmationMessage.style.opacity = '1';
-                };
-            }
-
-            function recordResult(didClick) {
-                // Log the data
-                const result = {
-                    participant: testData.length + 1,
-                    group: currentGroup,
-                    clicked: didClick
-                };
-                testData.push(result);
-
-                // Update summary
-                summary[currentGroup].visitors++;
-                if (didClick) {
-                    summary[currentGroup].clicks++;
-                }
-                
-                updateSummaryDisplay();
-                resetUIForNextTest();
-            }
-
-            function updateSummaryDisplay() {
-                // Group A
-                document.getElementById('visitors-a').textContent = summary.A.visitors;
-                document.getElementById('clicks-a').textContent = summary.A.clicks;
-                const ctrA = summary.A.visitors > 0 ? ((summary.A.clicks / summary.A.visitors) * 100).toFixed(1) : 0;
-                document.getElementById('ctr-a').textContent = `${ctrA}%`;
-                
-                // Group B
-                document.getElementById('visitors-b').textContent = summary.B.visitors;
-                document.getElementById('clicks-b').textContent = summary.B.clicks;
-                const ctrB = summary.B.visitors > 0 ? ((summary.B.clicks / summary.B.visitors) * 100).toFixed(1) : 0;
-                document.getElementById('ctr-b').textContent = `${ctrB}%`;
-            }
-
-            function resetUIForNextTest() {
-                zenflowCard.style.display = 'none';
-                recorderPanel.style.display = 'none';
-                startTestBtn.style.display = 'block';
-            }
-
-            function downloadCSV() {
-                if (testData.length === 0) {
-                    alert('No data to download!');
-                    return;
-                }
-                let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "Participant,Group,Clicked\r\n";
-                testData.forEach(row => {
-                    csvContent += `${row.participant},${row.group},${row.clicked}\r\n`;
-                });
-
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "ab_test_results.csv");
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            });
+            updateSummaryDisplay(summary);
+        }, (error) => {
+            console.error("Firestore real-time listener failed:", error);
+            if(error.code === 'permission-denied') {
+                 alert("Firestore permission denied. Please ensure your Firestore security rules are set to 'test mode' to allow reads and writes.");
             }
         });
-    </script>
+        
+        function setupNewTest() {
+            startTestBtn.style.display = 'none';
+            zenflowCard.style.display = 'block';
+            recorderPanel.style.display = 'block';
+            ctaButton.style.display = 'block';
+            confirmationMessage.style.opacity = '0';
+            ctaButton.className = 'btn';
+            currentGroup = ''; // Reset group at the start of a test
 
+            if (Math.random() < 0.5) {
+                currentGroup = 'A';
+                ctaButton.innerText = 'Sign Up for Free';
+                ctaButton.classList.add('btn-control');
+            } else {
+                currentGroup = 'B';
+                ctaButton.innerText = 'Start Your Journey';
+                ctaButton.classList.add('btn-treatment');
+            }
+            groupDisplay.textContent = `Group ${currentGroup} ('${ctaButton.innerText}')`;
+            
+            ctaButton.onclick = () => {
+                ctaButton.style.display = 'none';
+                confirmationMessage.style.opacity = '1';
+            };
+        }
+
+        async function recordResult(didClick) {
+            if (!currentGroup) {
+                console.error("Cannot record result: currentGroup is not set.");
+                alert("An error occurred. Please start a new participant test.");
+                resetUIForNextTest();
+                return;
+            }
+            try {
+                await addDoc(resultsCollection, {
+                    group: currentGroup,
+                    clicked: didClick,
+                    timestamp: new Date()
+                });
+                console.log("Result saved to Firebase!");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("Could not save data to Firebase. Check your configuration and security rules.");
+            }
+            resetUIForNextTest();
+        }
+
+        function updateSummaryDisplay(summary) {
+            document.getElementById('visitors-a').textContent = summary.A.visitors;
+            document.getElementById('clicks-a').textContent = summary.A.clicks;
+            const ctrA = summary.A.visitors > 0 ? ((summary.A.clicks / summary.A.visitors) * 100).toFixed(1) : 0;
+            document.getElementById('ctr-a').textContent = `${ctrA}%`;
+            
+            document.getElementById('visitors-b').textContent = summary.B.visitors;
+            document.getElementById('clicks-b').textContent = summary.B.clicks;
+            const ctrB = summary.B.visitors > 0 ? ((summary.B.clicks / summary.B.visitors) * 100).toFixed(1) : 0;
+            document.getElementById('ctr-b').textContent = `${ctrB}%`;
+        }
+
+        function resetUIForNextTest() {
+            zenflowCard.style.display = 'none';
+            recorderPanel.style.display = 'none';
+            startTestBtn.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
+
+
 
